@@ -23,13 +23,32 @@ Question:
 Provide your final answer wrapped inside <answer>...</answer> XML tags. Do not put any thinking, chain-of-thought, or other content inside the XML tags.
 """
 
-    response = client.models.generate_content(
-        model="gemma-4-31b-it",
+    response_stream = client.models.generate_content_stream(
+        model="gemma-4-26b-a4b-it",
         contents=prompt
     )
 
-    text = response.text
-    match = re.search(r"<answer>(.*?)</answer>", text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    return text.strip()
+    buffer = ""
+    seen_start = False
+
+    for chunk in response_stream:
+        if chunk.text:
+            buffer += chunk.text
+            if not seen_start:
+                if "<answer>" in buffer:
+                    parts = buffer.split("<answer>", 1)
+                    buffer = parts[1]
+                    seen_start = True
+            
+            if seen_start:
+                if "</answer>" in buffer:
+                    final_parts = buffer.split("</answer>", 1)
+                    yield final_parts[0]
+                    break
+                else:
+                    if len(buffer) > 9:
+                        yield buffer[:-9]
+                        buffer = buffer[-9:]
+
+    if not seen_start and buffer:
+        yield buffer.strip()

@@ -15,6 +15,9 @@ def run_rag(collection, question):
     """
     # 1. Expand queries
     expanded_queries = generate_queries(question)
+    print("\nGenerated Multi-Queries for Expansion:")
+    for idx, q in enumerate(expanded_queries):
+        print(f"  {idx + 1}. {q}")
 
     # 2. Retrieve documents
     documents = retrieve_documents(collection, question, expanded_queries)
@@ -60,7 +63,9 @@ def main():
         )
 
         print("\nAnswer:")
-        print(answer)
+        for chunk in answer:
+            print(chunk, end="", flush=True)
+        print()
         print("\n" + "=" * 80)
 
 

@@ -76,7 +76,9 @@ def chat_loop(collection):
 
             print("\nAnswer:")
             print("-" * 50)
-            print(answer)
+            for chunk in answer:
+                print(chunk, end="", flush=True)
+            print()
 
         except Exception as e:
             print(f"\nError: {e}")
