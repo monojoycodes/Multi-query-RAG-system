@@ -13,11 +13,13 @@ def create_vector_store(chunks):
         embedding_function=embedding_function
     )
 
-    ids = [str(i) for i in range(len(chunks))]
-
-    collection.upsert(
-        ids=ids,
-        documents=chunks
-    )
+    if collection.count() == 0:
+        ids = [str(i) for i in range(len(chunks))]
+        collection.upsert(
+            ids=ids,
+            documents=chunks
+        )
+    else:
+        print("Vector database already loaded. Skipping re-indexing.")
 
     return collection

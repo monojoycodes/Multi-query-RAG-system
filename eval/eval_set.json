@@ -1,0 +1,252 @@
+[
+  {
+    "question": "What was the percentage of data center energy emissions reduction achieved by Google in 2024?",
+    "answer": "12%",
+    "type": "Easy"
+  },
+  {
+    "question": "What year did Google sign its first clean energy power purchase agreement?",
+    "answer": "2010",
+    "type": "Easy"
+  },
+  {
+    "question": "How many gigawatts of additional clean energy generation did Google sign contracts to purchase in 2024?",
+    "answer": "Over 8 GW",
+    "type": "Easy"
+  },
+  {
+    "question": "What is the name of Google's seventh-generation Tensor Processing Unit?",
+    "answer": "Ironwood",
+    "type": "Easy"
+  },
+  {
+    "question": "What was Google's global carbon-free energy percentage across its data centers and offices in 2024?",
+    "answer": "66%",
+    "type": "Easy"
+  },
+  {
+    "question": "What percentage of packaging for new Google products launched and manufactured in 2024 was plastic-free?",
+    "answer": "100%",
+    "type": "Easy"
+  },
+  {
+    "question": "Which tool launched its first satellite in March 2025 to detect and track wildfires?",
+    "answer": "FireSat",
+    "type": "Easy"
+  },
+  {
+    "question": "What is Google's global water replenishment target for 2030?",
+    "answer": "To replenish 120% of the freshwater volume it consumes, on average, across its offices and data centers",
+    "type": "Easy"
+  },
+  {
+    "question": "What was Google's total ambition-based carbon footprint in 2024?",
+    "answer": "11.5 million tCO2e",
+    "type": "Easy"
+  },
+  {
+    "question": "Which AI-powered tool helps city traffic engineers optimize the timing of traffic lights?",
+    "answer": "Green Light",
+    "type": "Easy"
+  },
+  {
+    "question": "Which company did Google sign an agreement with to purchase nuclear energy from small modular reactors?",
+    "answer": "Kairos Power",
+    "type": "Easy"
+  },
+  {
+    "question": "What was the average annual power usage effectiveness (PUE) for Google's global fleet of data centers in 2024?",
+    "answer": "1.09",
+    "type": "Easy"
+  },
+  {
+    "question": "What percentage of freshwater withdrawals came from sources at low risk of water depletion or scarcity in 2024?",
+    "answer": "72%",
+    "type": "Easy"
+  },
+  {
+    "question": "Which metric quantifies an AI accelerator chip's carbon emissions per unit of computation?",
+    "answer": "Compute Carbon Intensity (CCI)",
+    "type": "Easy"
+  },
+  {
+    "question": "What is the name of Google's first fully hybrid reasoning AI model?",
+    "answer": "Gemini 2.5 Flash",
+    "type": "Easy"
+  },
+  {
+    "question": "How many days in advance can Google's Flood Hub predict riverine floods?",
+    "answer": "Up to seven days",
+    "type": "Easy"
+  },
+  {
+    "question": "What tool helps supplier facility managers identify energy efficiency opportunities across their operations without needing deep technical expertise?",
+    "answer": "Energy Assessment tool",
+    "type": "Easy"
+  },
+  {
+    "question": "By what year does the Google Clean Energy Addendum ask suppliers to commit to achieving a 100% clean electricity match?",
+    "answer": "By the end of 2029",
+    "type": "Easy"
+  },
+  {
+    "question": "In what year did Google first achieve a 100% renewable energy match for its global electricity use?",
+    "answer": "2017",
+    "type": "Easy"
+  },
+  {
+    "question": "What is the capacity of the enhanced geothermal project Google contracted with Fervo Energy in 2024?",
+    "answer": "115 MW",
+    "type": "Easy"
+  },
+  {
+    "question": "How much did Google's data center electricity consumption grow in 2024 compared to its growth in 2023?",
+    "answer": "It grew by 27% in 2024, compared to 17% growth in 2023.",
+    "type": "Medium"
+  },
+  {
+    "question": "What was the scope 1 emissions in 2024 and how did it change from 2023?",
+    "answer": "Scope 1 emissions were 73,100 tCO2e in 2024, a decrease from 79,400 tCO2e in 2023.",
+    "type": "Medium"
+  },
+  {
+    "question": "How much power efficiency improvement did the Ironwood TPU achieve compared to the first Cloud TPU from 2018?",
+    "answer": "Ironwood is nearly 30 times more power efficient than the first Cloud TPU from 2018.",
+    "type": "Medium"
+  },
+  {
+    "question": "How many metric tons of avoided emissions were attributed to clean energy purchases in 2023 compared to 2024?",
+    "answer": "5.9 million tCO2e were avoided in 2023, and 8.2 million tCO2e were avoided in 2024.",
+    "type": "Medium"
+  },
+  {
+    "question": "Which two companies partnered with Google for a waste wood-to-energy plant in Singapore?",
+    "answer": "PacificLight Energy and Rexus Bioenergy.",
+    "type": "Medium"
+  },
+  {
+    "question": "What is the difference in regional average Google CFE between North America and Asia Pacific in 2024?",
+    "answer": "North America's regional average CFE was 70%, while Asia Pacific's was 12%.",
+    "type": "Medium"
+  },
+  {
+    "question": "How many metric tons of GHG emissions reductions did fuel-efficient routing in Google Maps enable in 2024, and what is its car-equivalent?",
+    "answer": "It enabled more than 2.7 million metric tons of reductions, equivalent to taking approximately 630,000 gasoline-powered cars off the road for a year.",
+    "type": "Medium"
+  },
+  {
+    "question": "What was the total waste generated in 2024 and how much of it was diverted?",
+    "answer": "Total waste generated was 58,500 metric tons, and 49,200 metric tons were diverted.",
+    "type": "Medium"
+  },
+  {
+    "question": "What was the percentage of food waste diverted from landfill in 2023 versus 2024?",
+    "answer": "The diversion rate was 82% in 2023 and increased to 85% in 2024.",
+    "type": "Medium"
+  },
+  {
+    "question": "Which two rivers in California's Central Valley were part of Google's multi-benefit floodplain restoration efforts?",
+    "answer": "The Tuolumne and San Joaquin rivers.",
+    "type": "Medium"
+  },
+  {
+    "question": "How much energy did Nest thermostats save cumulatively from 2011 to 2024, and what country's 2023 total electricity consumption is this comparable to?",
+    "answer": "They saved more than 162 billion kWh, which is more than the total annual electricity consumption of Poland in 2023.",
+    "type": "Medium"
+  },
+  {
+    "question": "What was the reduction in Scope 2 market-based emissions from 2023 to 2024?",
+    "answer": "Emissions decreased from 3,423,400 tCO2e in 2023 to 3,059,100 tCO2e in 2024.",
+    "type": "Medium"
+  },
+  {
+    "question": "How many gigawatts of clean energy has Google contracted from 2010 to 2024, across how many agreements?",
+    "answer": "Over 22 GW across more than 170 agreements.",
+    "type": "Medium"
+  },
+  {
+    "question": "Which company is Google partnering with to develop 1 GW of new solar energy in Taiwan, and what region is this located in?",
+    "answer": "BlackRock's Climate Infrastructure business, located in the Asia Pacific region.",
+    "type": "Medium"
+  },
+  {
+    "question": "What was the total water consumed by data centers in 2024, and how much of it was potable water?",
+    "answer": "Data centers consumed a total of 7,787 million gallons, of which 7,699 million gallons was potable water.",
+    "type": "Medium"
+  },
+  {
+    "question": "How did Google's fleet-wide PUE in 2024 compare to its baseline PUE from 2008?",
+    "answer": "It improved to 1.09 in 2024, compared to the 1.21 baseline in 2008.",
+    "type": "Medium"
+  },
+  {
+    "question": "What are the two types of emission factors used to calculate transportation emissions using the distance-based method in Category 7?",
+    "answer": "Well-to-tank (WTT) emission factors and tank-to-wheel (TTW) emission factors.",
+    "type": "Medium"
+  },
+  {
+    "question": "How much did emissions from data center construction increase year-on-year in 2024, and what percentage of total 2024 ambition-based scope 3 emissions did it represent?",
+    "answer": "It increased 54% year-on-year, representing 19% of total 2024 ambition-based scope 3 emissions.",
+    "type": "Medium"
+  },
+  {
+    "question": "Which two organizations collaborated with Google to launch the Freshwater Ecosystems Explorer?",
+    "answer": "The United Nations Environment Programme (UNEP) and the European Commission Joint Research Centre.",
+    "type": "Medium"
+  },
+  {
+    "question": "In what year did Google and Fervo Energy sign the first corporate agreement to develop a next-generation geothermal power project, and what year did it become operational?",
+    "answer": "The agreement was signed in 2021, and the project became operational in 2023.",
+    "type": "Medium"
+  },
+  {
+    "question": "In the detailed emissions data table, what was the exact amount of biogenic emissions in tCO2 for 2024?",
+    "answer": "17,200 metric tons of carbon dioxide (tCO2).",
+    "type": "Hard"
+  },
+  {
+    "question": "What percentage of the plastic used in Google products manufactured in 2024 was recycled content, and what was this percentage in 2023?",
+    "answer": "40% in 2024, up from 34% in 2023.",
+    "type": "Hard"
+  },
+  {
+    "question": "In the 2024 audit conformance data, what percentage of supplier facilities had no findings for \"Hazardous substances\" before the corrective action plan (CAP), and what was it after CAP?",
+    "answer": "90.1% before CAP, and 94.2% after CAP.",
+    "type": "Hard"
+  },
+  {
+    "question": "What is the name of the AI agent powered by large language models that continuously recovers an average of 0.7% of Google's worldwide compute resources?",
+    "answer": "AlphaEvolve.",
+    "type": "Hard"
+  },
+  {
+    "question": "Out of the 112 global water stewardship projects spanning 68 watersheds in 2024, how many were categorized under \"Water supply reliability\"?",
+    "answer": "42.",
+    "type": "Hard"
+  },
+  {
+    "question": "What is the specific carbon intensity metric per megawatt-hour (MWh) of energy consumed by Google in 2024?",
+    "answer": "0.0957 tCO2e / MWh.",
+    "type": "Hard"
+  },
+  {
+    "question": "According to the \"GHG emissions by region\" table, what were the exact Scope 2 (market-based) emissions for the Asia Pacific region in 2024?",
+    "answer": "1,801,300 tCO2e.",
+    "type": "Hard"
+  },
+  {
+    "question": "How many metric tons of carbon removal credits did Google purchase in 2024 through its 16 new offtake deals, and what did that bring the cumulative total portfolio to?",
+    "answer": "728,300 tCO2e of removal credits, bringing the cumulative total to 782,400 tCO2e.",
+    "type": "Hard"
+  },
+  {
+    "question": "In the data center water use table, what was the total water withdrawn and consumed in 2024 for the St. Ghislain, Belgium data center?",
+    "answer": "511.7 million gallons were withdrawn, and 393.3 million gallons were consumed.",
+    "type": "Hard"
+  },
+  {
+    "question": "What percentage of Scope 3 ambition-based emissions in 2024 came from electricity use across the value chain, and what was the absolute amount of Scope 3 emissions?",
+    "answer": "Approximately 60% of these emissions came from electricity use, out of a total scope 3 footprint of 8.4 million tCO2e.",
+    "type": "Hard"
+  }
+]

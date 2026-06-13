@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG A/B Comparison Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f17;
+            --card-bg: #151c2c;
+            --text-color: #cbd5e1;
+            --text-muted: #64748b;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --warn-color: #f59e0b;
+            --danger-color: #ef4444;
+            --border-color: #243049;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: #fff;
+        }
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .summary-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .summary-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .summary-card .val-row {
+            display: flex;
+            gap: 1.5rem;
+            align-items: baseline;
+            margin: 0.5rem 0;
+        }
+        .summary-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .summary-card .value.lbl {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .summary-card .delta {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            margin-top: 0.5rem;
+        }
+        .delta.positive {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success-color);
+        }
+        .delta.negative {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger-color);
+        }
+        .delta.neutral {
+            background-color: rgba(100, 116, 139, 0.15);
+            color: var(--text-muted);
+        }
+        .question-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .question-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+        .question-num {
+            background-color: var(--accent-color);
+            color: #fff;
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-right: 1rem;
+        }
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .column {
+            background-color: rgba(11, 15, 23, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .column.ground-truth {
+            border-color: rgba(245, 158, 11, 0.3);
+            background-color: rgba(245, 158, 11, 0.02);
+        }
+        .column.baseline {
+            border-color: rgba(100, 116, 139, 0.3);
+        }
+        .column.expanded {
+            border-color: rgba(59, 130, 246, 0.3);
+            background-color: rgba(59, 130, 246, 0.01);
+        }
+        .column h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .column.ground-truth h4 { color: var(--warn-color); }
+        .column.baseline h4 { color: var(--text-muted); }
+        .column.expanded h4 { color: var(--accent-color); }
+        .ans-text {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            flex-grow: 1;
+            white-space: pre-wrap;
+        }
+        .metric-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: var(--border-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--text-color);
+        }
+        .metric-badge.better {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+        .metric-badge.tie {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: var(--warn-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RAG A/B Comparison Report</h1>
+            <p>Evaluation results for Baseline (No Expansion) vs. Expanded (With Expansion) pipeline</p>
+        </header>
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Semantic Similarity</h3>
+                <div class="val-row">
+                    <div><span class="value">0.8122</span> <span class="value lbl">Base</span></div>
+                    <div><span class="value">0.8689</span> <span class="value lbl">Exp</span></div>
+                </div>
+                <div class="delta positive">Delta: ++0.0567</div>
+            </div>
+            
+            <div class="summary-card">
+                <h3>Exact Match Rate</h3>
+                <div class="val-row">
+                    <div><span class="value">54.0%</span> <span class="value lbl">Base</span></div>
+                    <div><span class="value">54.0%</span> <span class="value lbl">Exp</span></div>
+                </div>
+                <div class="delta positive">Delta: ++0.0%</div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Retrieval Failure Rate</h3>
+                <div class="val-row">
+                    <div><span class="value">10.0%</span> <span class="value lbl">Base</span></div>
+                    <div><span class="value">4.0%</span> <span class="value lbl">Exp</span></div>
+                </div>
+                <div class="delta negative">Delta: -6.0%</div>
+            </div>
+        </div>
+
+        <div class="questions-section">
+            
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q1</span>
+                <span class="question-text">What was the percentage of data center energy emissions reduction achieved by Google in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">12%</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.5775</span></h4>
+                    <div class="ans-text">Google reduced its data center energy emissions by 12% in 2024 compared to 2023.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 1.0000</span></h4>
+                    <div class="ans-text">12%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q2</span>
+                <span class="question-text">What year did Google sign its first clean energy power purchase agreement?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">2010</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">2010</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">2010</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q3</span>
+                <span class="question-text">How many gigawatts of additional clean energy generation did Google sign contracts to purchase in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Over 8 GW</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">over 8 GW</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">over 8 GW</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q4</span>
+                <span class="question-text">What is the name of Google's seventh-generation Tensor Processing Unit?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Ironwood</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Ironwood</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Ironwood</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q5</span>
+                <span class="question-text">What was Google's global carbon-free energy percentage across its data centers and offices in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">66%</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.6467</span></h4>
+                    <div class="ans-text">Google's global carbon-free energy percentage across its data centers and offices in 2024 was 66%.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 1.0000</span></h4>
+                    <div class="ans-text">66%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q6</span>
+                <span class="question-text">What percentage of packaging for new Google products launched and manufactured in 2024 was plastic-free?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">100%</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">100%</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">100%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q7</span>
+                <span class="question-text">Which tool launched its first satellite in March 2025 to detect and track wildfires?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">FireSat</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">FireSat</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">FireSat</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q8</span>
+                <span class="question-text">What is Google's global water replenishment target for 2030?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">To replenish 120% of the freshwater volume it consumes, on average, across its offices and data centers</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.8381</span></h4>
+                    <div class="ans-text">Google aims to replenish 120% of the freshwater volume it consumes, on average, across its offices and data centers by 2030.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.8381</span></h4>
+                    <div class="ans-text">Google aims to replenish 120% of the freshwater volume it consumes, on average, across its offices and data centers by 2030.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q9</span>
+                <span class="question-text">What was Google's total ambition-based carbon footprint in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">11.5 million tCO2e</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.5161</span></h4>
+                    <div class="ans-text">I do not know</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.5161</span></h4>
+                    <div class="ans-text">I do not know</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q10</span>
+                <span class="question-text">Which AI-powered tool helps city traffic engineers optimize the timing of traffic lights?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Green Light</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Green Light</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Green Light</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q11</span>
+                <span class="question-text">Which company did Google sign an agreement with to purchase nuclear energy from small modular reactors?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Kairos Power</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Kairos Power</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Kairos Power</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q12</span>
+                <span class="question-text">What was the average annual power usage effectiveness (PUE) for Google's global fleet of data centers in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">1.09</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">1.09</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">1.09</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q13</span>
+                <span class="question-text">What percentage of freshwater withdrawals came from sources at low risk of water depletion or scarcity in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">72%</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">72%</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">72%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q14</span>
+                <span class="question-text">Which metric quantifies an AI accelerator chip's carbon emissions per unit of computation?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Compute Carbon Intensity (CCI)</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Compute Carbon Intensity (CCI)</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Compute Carbon Intensity (CCI)</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q15</span>
+                <span class="question-text">What is the name of Google's first fully hybrid reasoning AI model?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Gemini 2.5 Flash</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Gemini 2.5 Flash</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Gemini 2.5 Flash</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q16</span>
+                <span class="question-text">How many days in advance can Google's Flood Hub predict riverine floods?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Up to seven days</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.6595</span></h4>
+                    <div class="ans-text">Google's Flood Hub predicts riverine floods up to seven days in advance.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9401</span></h4>
+                    <div class="ans-text">up to seven days in advance</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q17</span>
+                <span class="question-text">What tool helps supplier facility managers identify energy efficiency opportunities across their operations without needing deep technical expertise?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Energy Assessment tool</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.9769</span></h4>
+                    <div class="ans-text">The Energy Assessment tool</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Energy Assessment tool</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q18</span>
+                <span class="question-text">By what year does the Google Clean Energy Addendum ask suppliers to commit to achieving a 100% clean electricity match?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">By the end of 2029</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge better">Sim: 1.0000</span></h4>
+                    <div class="ans-text">by the end of 2029</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge ">Sim: 0.8950</span></h4>
+                    <div class="ans-text">2029</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q19</span>
+                <span class="question-text">In what year did Google first achieve a 100% renewable energy match for its global electricity use?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">2017</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">2017</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">2017</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q20</span>
+                <span class="question-text">What is the capacity of the enhanced geothermal project Google contracted with Fervo Energy in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">115 MW</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">115 MW</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 1.0000</span></h4>
+                    <div class="ans-text">115 MW</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q21</span>
+                <span class="question-text">How much did Google's data center electricity consumption grow in 2024 compared to its growth in 2023?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">It grew by 27% in 2024, compared to 17% growth in 2023.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge better">Sim: 0.7882</span></h4>
+                    <div class="ans-text">Google's data center electricity consumption grew by 27% in 2024, compared to 17% growth in the prior year.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge ">Sim: 0.7811</span></h4>
+                    <div class="ans-text">In 2024, Google's data center electricity consumption increased by 27%, compared to 17% growth in the prior year.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q22</span>
+                <span class="question-text">What was the scope 1 emissions in 2024 and how did it change from 2023?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Scope 1 emissions were 73,100 tCO2e in 2024, a decrease from 79,400 tCO2e in 2023.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.9168</span></h4>
+                    <div class="ans-text">In 2024, scope 1 emissions were approximately 73,100 tCO2e, which represented a reduction of 8% compared to 2023.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9235</span></h4>
+                    <div class="ans-text">In 2024, scope 1 emissions were approximately 73,100 tCO2e, and they were reduced by 8% compared to 2023.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q23</span>
+                <span class="question-text">How much power efficiency improvement did the Ironwood TPU achieve compared to the first Cloud TPU from 2018?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Ironwood is nearly 30 times more power efficient than the first Cloud TPU from 2018.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge better">Sim: 1.0000</span></h4>
+                    <div class="ans-text">Ironwood is nearly 30 times more power efficient than the first Cloud TPU from 2018.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge ">Sim: 0.7560</span></h4>
+                    <div class="ans-text">nearly 30 times more power efficient</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q24</span>
+                <span class="question-text">How many metric tons of avoided emissions were attributed to clean energy purchases in 2023 compared to 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">5.9 million tCO2e were avoided in 2023, and 8.2 million tCO2e were avoided in 2024.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge better">Sim: 0.7840</span></h4>
+                    <div class="ans-text">11.3 million tCO2e in 2023 compared to 8.2 million tCO2e in 2024</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge ">Sim: 0.3615</span></h4>
+                    <div class="ans-text">I do not know.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q25</span>
+                <span class="question-text">Which two companies partnered with Google for a waste wood-to-energy plant in Singapore?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">PacificLight Energy and Rexus Bioenergy.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.9955</span></h4>
+                    <div class="ans-text">PacificLight Energy and Rexus Bioenergy</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.9955</span></h4>
+                    <div class="ans-text">PacificLight Energy and Rexus Bioenergy</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q26</span>
+                <span class="question-text">What is the difference in regional average Google CFE between North America and Asia Pacific in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">North America's regional average CFE was 70%, while Asia Pacific's was 12%.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.5854</span></h4>
+                    <div class="ans-text">58%</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.5854</span></h4>
+                    <div class="ans-text">58%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q27</span>
+                <span class="question-text">How many metric tons of GHG emissions reductions did fuel-efficient routing in Google Maps enable in 2024, and what is its car-equivalent?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">It enabled more than 2.7 million metric tons of reductions, equivalent to taking approximately 630,000 gasoline-powered cars off the road for a year.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.7600</span></h4>
+                    <div class="ans-text">In 2024, fuel-efficient routing in Google Maps enabled more than 2.7 million metric tons of GHG emissions reductions, which is equivalent to taking approximately 630,000 gasoline-powered cars off the road for a year.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9064</span></h4>
+                    <div class="ans-text">over 2.7 million metric tons of GHG emissions reductions, equivalent to taking approximately 630,000 gasoline-powered cars off the road for a year</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q28</span>
+                <span class="question-text">What was the total waste generated in 2024 and how much of it was diverted?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Total waste generated was 58,500 metric tons, and 49,200 metric tons were diverted.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.2794</span></h4>
+                    <div class="ans-text">I do not know</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9202</span></h4>
+                    <div class="ans-text">In 2024, the total waste generated was 58,500 metric tons and 49,200 metric tons was diverted.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q29</span>
+                <span class="question-text">What was the percentage of food waste diverted from landfill in 2023 versus 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">The diversion rate was 82% in 2023 and increased to 85% in 2024.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.8078</span></h4>
+                    <div class="ans-text">The percentage of food waste diverted from landfill was 82% in 2023 and 85% in 2024.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.8918</span></h4>
+                    <div class="ans-text">In 2023, the food waste diversion rate was 82%, and in 2024, it was 85%.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q30</span>
+                <span class="question-text">Which two rivers in California's Central Valley were part of Google's multi-benefit floodplain restoration efforts?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">The Tuolumne and San Joaquin rivers.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.4197</span></h4>
+                    <div class="ans-text">I do not know</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9708</span></h4>
+                    <div class="ans-text">the Tuolumne and San Joaquin rivers</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q31</span>
+                <span class="question-text">How much energy did Nest thermostats save cumulatively from 2011 to 2024, and what country's 2023 total electricity consumption is this comparable to?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">They saved more than 162 billion kWh, which is more than the total annual electricity consumption of Poland in 2023.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.8236</span></h4>
+                    <div class="ans-text">Nest thermostats helped customers cumulatively save more than 162 billion kWh of energy from 2011 to 2024, which is more than the total annual electricity consumption of Poland in 2023.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.8236</span></h4>
+                    <div class="ans-text">Nest thermostats helped customers cumulatively save more than 162 billion kWh of energy from 2011 to 2024, which is more than the total annual electricity consumption of Poland in 2023.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q32</span>
+                <span class="question-text">What was the reduction in Scope 2 market-based emissions from 2023 to 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Emissions decreased from 3,423,400 tCO2e in 2023 to 3,059,100 tCO2e in 2024.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge better">Sim: 0.7257</span></h4>
+                    <div class="ans-text">Compared to 2023, Scope 2 (market-based) emissions were reduced by 11%.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge ">Sim: 0.4867</span></h4>
+                    <div class="ans-text">11%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q33</span>
+                <span class="question-text">How many gigawatts of clean energy has Google contracted from 2010 to 2024, across how many agreements?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Over 22 GW across more than 170 agreements.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.7379</span></h4>
+                    <div class="ans-text">From 2010 to 2024, Google signed more than 170 agreements to purchase over 22 GW of clean energy generation.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.8370</span></h4>
+                    <div class="ans-text">more than 170 agreements to purchase over 22 GW of clean energy generation</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q34</span>
+                <span class="question-text">Which company is Google partnering with to develop 1 GW of new solar energy in Taiwan, and what region is this located in?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">BlackRock's Climate Infrastructure business, located in the Asia Pacific region.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge better">Sim: 0.7710</span></h4>
+                    <div class="ans-text">Google is partnering with BlackRock’s Climate Infrastructure business to enable 1 GW of new solar energy in Taiwan, which is a region that plays a prominent role in global technology supply chains.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge ">Sim: 0.7223</span></h4>
+                    <div class="ans-text">Google is partnering with BlackRock’s Climate Infrastructure business to develop 1 GW of new solar energy in Taiwan.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q35</span>
+                <span class="question-text">What was the total water consumed by data centers in 2024, and how much of it was potable water?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Data centers consumed a total of 7,787 million gallons, of which 7,699 million gallons was potable water.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.9049</span></h4>
+                    <div class="ans-text">In 2024, the total water consumed by data centers was 7,787 million gallons; however, the provided context does not state how much of that consumption was potable water (it only provides that 7,699 million gallons of potable water were withdrawn).</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9487</span></h4>
+                    <div class="ans-text">The total water consumed by data centers in 2024 was 7,787 million gallons, and 7,699 million gallons was potable water.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q36</span>
+                <span class="question-text">How did Google's fleet-wide PUE in 2024 compare to its baseline PUE from 2008?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">It improved to 1.09 in 2024, compared to the 1.21 baseline in 2008.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.3275</span></h4>
+                    <div class="ans-text">I do not know</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.6509</span></h4>
+                    <div class="ans-text">In 2024, the average annual PUE for Google's global fleet of data centers was 1.09, compared to a baseline fleet-wide TTM PUE of 1.21 in 2008.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q37</span>
+                <span class="question-text">What are the two types of emission factors used to calculate transportation emissions using the distance-based method in Category 7?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Well-to-tank (WTT) emission factors and tank-to-wheel (TTW) emission factors.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge better">Sim: 0.9260</span></h4>
+                    <div class="ans-text">The two types of emission factors used are mode-specific well-to-tank (WTT) emission factors and tank-to-wheel (TTW) emission factors.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge ">Sim: 0.7894</span></h4>
+                    <div class="ans-text">mode-specific WTT emission factors and TTW emission factors</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q38</span>
+                <span class="question-text">How much did emissions from data center construction increase year-on-year in 2024, and what percentage of total 2024 ambition-based scope 3 emissions did it represent?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">It increased 54% year-on-year, representing 19% of total 2024 ambition-based scope 3 emissions.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.8512</span></h4>
+                    <div class="ans-text">In 2024, emissions from data center construction increased 54% year-on-year (reaching approximately 1.6 million tCO2e) and represented 19% of total 2024 ambition-based scope 3 emissions.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9063</span></h4>
+                    <div class="ans-text">In 2024, emissions from data center construction increased 54% year-on-year and represented 19% of total 2024 ambition-based scope 3 emissions.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q39</span>
+                <span class="question-text">Which two organizations collaborated with Google to launch the Freshwater Ecosystems Explorer?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">The United Nations Environment Programme (UNEP) and the European Commission Joint Research Centre.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.8367</span></h4>
+                    <div class="ans-text">The two organizations that collaborated with Google to launch the Freshwater Ecosystems Explorer are the United Nations Environment Programme (UNEP) and the European Commission Joint Research Centre.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.8988</span></h4>
+                    <div class="ans-text">UNEP and the European Commission Joint Research Centre</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q40</span>
+                <span class="question-text">In what year did Google and Fervo Energy sign the first corporate agreement to develop a next-generation geothermal power project, and what year did it become operational?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">The agreement was signed in 2021, and the project became operational in 2023.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.7428</span></h4>
+                    <div class="ans-text">Google and Fervo Energy signed the first corporate agreement to develop a next-generation geothermal power project in 2021, and it became operational in 2023.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.7781</span></h4>
+                    <div class="ans-text">Google and Fervo Energy signed the first corporate agreement in 2021, and the project became operational in 2023.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q41</span>
+                <span class="question-text">In the detailed emissions data table, what was the exact amount of biogenic emissions in tCO2 for 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">17,200 metric tons of carbon dioxide (tCO2).</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.7837</span></h4>
+                    <div class="ans-text">17,200</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.7837</span></h4>
+                    <div class="ans-text">17,200</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q42</span>
+                <span class="question-text">What percentage of the plastic used in Google products manufactured in 2024 was recycled content, and what was this percentage in 2023?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">40% in 2024, up from 34% in 2023.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.7014</span></h4>
+                    <div class="ans-text">40% of the plastic Google used in products manufactured in 2024 was recycled content, and this percentage was 34% in 2023.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.7088</span></h4>
+                    <div class="ans-text">In 2024, 40% of the plastic Google used in products manufactured was recycled content, and in 2023, this percentage was 34%.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q43</span>
+                <span class="question-text">In the 2024 audit conformance data, what percentage of supplier facilities had no findings for "Hazardous substances" before the corrective action plan (CAP), and what was it after CAP?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">90.1% before CAP, and 94.2% after CAP.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.5677</span></h4>
+                    <div class="ans-text">For "Hazardous substances", 93.4% of supplier facilities had no findings before the corrective action plan (CAP), and 96.7% had no findings after CAP.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.5963</span></h4>
+                    <div class="ans-text">Before the corrective action plan (CAP), 93.4% of supplier facilities had no findings for "Hazardous substances," and after CAP, it was 96.7%.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q44</span>
+                <span class="question-text">What is the name of the AI agent powered by large language models that continuously recovers an average of 0.7% of Google's worldwide compute resources?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">AlphaEvolve.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.9268</span></h4>
+                    <div class="ans-text">AlphaEvolve</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.9268</span></h4>
+                    <div class="ans-text">AlphaEvolve</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q45</span>
+                <span class="question-text">Out of the 112 global water stewardship projects spanning 68 watersheds in 2024, how many were categorized under "Water supply reliability"?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">42.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge tie">Sim: 0.9619</span></h4>
+                    <div class="ans-text">42</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge tie">Sim: 0.9619</span></h4>
+                    <div class="ans-text">42</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q46</span>
+                <span class="question-text">What is the specific carbon intensity metric per megawatt-hour (MWh) of energy consumed by Google in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">0.0957 tCO2e / MWh.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.5545</span></h4>
+                    <div class="ans-text">I do not know</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9832</span></h4>
+                    <div class="ans-text">0.0957 tCO2e / MWh</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q47</span>
+                <span class="question-text">According to the "GHG emissions by region" table, what were the exact Scope 2 (market-based) emissions for the Asia Pacific region in 2024?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">1,801,300 tCO2e.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.5601</span></h4>
+                    <div class="ans-text"></div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.7720</span></h4>
+                    <div class="ans-text">1,801,300</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q48</span>
+                <span class="question-text">How many metric tons of carbon removal credits did Google purchase in 2024 through its 16 new offtake deals, and what did that bring the cumulative total portfolio to?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">728,300 tCO2e of removal credits, bringing the cumulative total to 782,400 tCO2e.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.7531</span></h4>
+                    <div class="ans-text">In 2024, Google signed 16 new offtake deals for a total of approximately 728,300 tCO2e of removal credits, which brought their cumulative total portfolio to approximately 782,400 tCO2e.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.7756</span></h4>
+                    <div class="ans-text">Google purchased approximately 728,300 tCO2e of removal credits through its 16 new offtake deals in 2024, bringing its cumulative total portfolio to approximately 782,400 tCO2e.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q49</span>
+                <span class="question-text">In the data center water use table, what was the total water withdrawn and consumed in 2024 for the St. Ghislain, Belgium data center?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">511.7 million gallons were withdrawn, and 393.3 million gallons were consumed.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.7938</span></h4>
+                    <div class="ans-text">In 2024, the St. Ghislain, Belgium data center had a total water withdrawal of 511.7 million gallons and water consumption of 393.3 million gallons.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.9563</span></h4>
+                    <div class="ans-text">511.7 million gallons withdrawn and 393.3 million gallons consumed</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-header">
+                <span class="question-num">Q50</span>
+                <span class="question-text">What percentage of Scope 3 ambition-based emissions in 2024 came from electricity use across the value chain, and what was the absolute amount of Scope 3 emissions?</span>
+            </div>
+            <div class="grid-3">
+                <div class="column ground-truth">
+                    <h4>Ground Truth (Correct)</h4>
+                    <div class="ans-text">Approximately 60% of these emissions came from electricity use, out of a total scope 3 footprint of 8.4 million tCO2e.</div>
+                </div>
+                <div class="column baseline">
+                    <h4>Single Query (Baseline) <span class="metric-badge ">Sim: 0.8091</span></h4>
+                    <div class="ans-text">Approximately 60% of Scope 3 ambition-based emissions in 2024 came from electricity use across the value chain, and the absolute amount of Scope 3 (ambition-based) emissions was approximately 8.4 million tCO2e.</div>
+                </div>
+                <div class="column expanded">
+                    <h4>Multi-Query (Expanded) <span class="metric-badge better">Sim: 0.8566</span></h4>
+                    <div class="ans-text">Approximately 60% of Scope 3 ambition-based emissions in 2024 came from electricity use across the value chain, and the absolute amount of Scope 3 emissions was approximately 8.4 million tCO2e.</div>
+                </div>
+            </div>
+        </div>
+        
+        </div>
+    </div>
+</body>
+</html>
